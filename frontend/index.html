@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrollBurn - Track Your Digital Footprint</title>
+    <!-- Green IT Justification: Single lightweight CSS file, no framework -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="persistent-header">
+        ⚡ This page: 0.07g CO₂ | 1 min TikTok: ~2.9g CO₂ → 41x more polluting
+    </header>
+
+    <nav>
+        <div class="logo"><strong>ScrollBurn</strong></div>
+        <div id="nav-links">
+            <a href="login.html">Login</a>
+            <a href="register.html">Register</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <h1>You scroll. The planet burns.</h1>
+            <p style="color: var(--text-secondary);">Calculate the hidden carbon footprint of your daily doomscrolling.</p>
+        </section>
+
+        <section class="card">
+            <h2>Carbon Mirror Calculator</h2>
+            <p>Enter yesterday's minutes spent on each platform:</p>
+            
+            <form id="calculator-form">
+                <div class="calculator-grid">
+                    <div>
+                        <label for="tiktok">TikTok (min)</label>
+                        <input type="number" id="tiktok" min="0" value="0">
+                    </div>
+                    <div>
+                        <label for="instagram">Instagram (min)</label>
+                        <input type="number" id="instagram" min="0" value="0">
+                    </div>
+                    <div>
+                        <label for="youtube">YouTube (min)</label>
+                        <input type="number" id="youtube" min="0" value="0">
+                    </div>
+                    <div>
+                        <label for="snapchat">Snapchat (min)</label>
+                        <input type="number" id="snapchat" min="0" value="0">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <label for="device">Primary Device</label>
+                    <select id="device">
+                        <option value="smartphone">Smartphone</option>
+                        <option value="laptop">Laptop</option>
+                        <option value="tablet">Tablet</option>
+                    </select>
+                </div>
+
+                <button type="submit">Calculate Impact</button>
+            </form>
+
+            <div id="results" class="results hidden">
+                <h3>Your Daily Footprint: <span id="res-co2" style="color: var(--warning-color);">0</span>g CO₂</h3>
+                <p>🚗 Equivalent to <strong id="res-km">0</strong> km by car</p>
+                <p>📧 Equivalent to <strong id="res-email">0</strong> emails sent</p>
+                <p>🌐 Equivalent to <strong id="res-web">0</strong> minutes on this website</p>
+            </div>
+        </section>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="register.html"><button class="btn-secondary" style="width: auto;">Track your usage over time → Create account</button></a>
+        </div>
+    </main>
+
+    <footer>
+        <p>Page Weight: ~15 KB | <a href="#">EcoIndex: Placeholder</a> | <a href="https://github.com/placeholder" target="_blank" rel="noopener">GitHub</a></p>
+    </footer>
+
+    <!-- Green IT Justification: Defer script loading so it doesn't block rendering -->
+    <script defer>
+        document.getElementById('calculator-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                device: document.getElementById('device').value,
+                platforms: {
+                    TikTok: document.getElementById('tiktok').value,
+                    Instagram: document.getElementById('instagram').value,
+                    YouTube: document.getElementById('youtube').value,
+                    Snapchat: document.getElementById('snapchat').value
+                }
+            };
+
+            try {
+                const response = await fetch('/calculator/estimate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('res-co2').innerText = result.total_co2_grams;
+                document.getElementById('res-km').innerText = result.equivalent_km_car;
+                document.getElementById('res-email').innerText = result.equivalent_emails;
+                document.getElementById('res-web').innerText = result.equivalent_minutes_website;
+            } catch (err) {
+                alert('Error calculating impact.');
+            }
+        });
+
+        // Simple auth check to update nav
+        if (localStorage.getItem('token')) {
+            document.getElementById('nav-links').innerHTML = `
+                <a href="dashboard.html">Dashboard</a>
+                <a href="#" id="logout-btn">Logout</a>
+            `;
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = 'index.html';
+            });
+        }
+    </script>
+</body>
+</html>

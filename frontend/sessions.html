@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sessions - ScrollBurn</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="persistent-header">
+        ⚡ This page: 0.07g CO₂ | 1 min TikTok: ~2.9g CO₂ → 41x more polluting
+    </header>
+
+    <nav>
+        <div class="logo"><a href="index.html">ScrollBurn</a></div>
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="challenges.html">Challenges</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="card">
+            <h2>Add New Session</h2>
+            <form id="add-session-form" class="calculator-grid">
+                <div>
+                    <label>Platform</label>
+                    <select id="platform" required>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Snapchat">Snapchat</option>
+                        <option value="Twitter/X">Twitter/X</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Duration (minutes)</label>
+                    <input type="number" id="duration" min="1" required>
+                </div>
+                <div>
+                    <label>Device</label>
+                    <select id="device" required>
+                        <option value="smartphone">Smartphone</option>
+                        <option value="laptop">Laptop</option>
+                        <option value="tablet">Tablet</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <button type="submit">Log Session</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Your Sessions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Platform</th>
+                        <th>Minutes</th>
+                        <th>Device</th>
+                        <th>CO₂ (g)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="sessions-list">
+                    <!-- Loaded via JS -->
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <button id="prev-btn" class="btn-secondary" style="width: auto;">← Prev</button>
+                <span id="page-info" style="align-self: center;">Page 1</span>
+                <button id="next-btn" class="btn-secondary" style="width: auto;">Next →</button>
+            </div>
+        </section>
+    </main>
+
+    <script defer>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Set default date to today
+        document.getElementById('date').valueAsDate = new Date();
+
+        document.getElementById('add-session-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                platform: document.getElementById('platform').value,
+                duration_minutes: document.getElementById('duration').value,
+                device: document.getElementById('device').value,
+                session_date: document.getElementById('date').value
+            };
+
+            try {
+                const res = await fetch('/sessions', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    document.getElementById('duration').value = '';
+                    loadSessions();
+                } else {
+                    alert('Error creating session');
+                }
+            } catch (err) {
+                alert('Network error');
+            }
+        });
+
+        async function deleteSession(id) {
+            if(!confirm("Delete this session?")) return;
+            const res = await fetch(`/sessions/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if(res.ok) loadSessions();
+        }
+
+        async function loadSessions() {
+            try {
+                const res = await fetch(`/sessions?page=${currentPage}&per_page=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    currentPage = data.current_page;
+                    totalPages = data.pages;
+                    
+                    const tbody = document.getElementById('sessions-list');
+                    tbody.innerHTML = '';
+                    data.sessions.forEach(s => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${s.session_date}</td>
+                                <td>${s.platform}</td>
+                                <td>${s.duration_minutes}</td>
+                                <td>${s.device}</td>
+                                <td>${s.co2_grams}</td>
+                                <td>
+                                    <button class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem; width: auto; margin:0;" onclick="deleteSession(${s.id})">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    document.getElementById('page-info').innerText = `Page ${currentPage} of ${totalPages || 1}`;
+                    document.getElementById('prev-btn').disabled = currentPage <= 1;
+                    document.getElementById('next-btn').disabled = currentPage >= totalPages;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            if(currentPage > 1) { currentPage--; loadSessions(); }
+        });
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if(currentPage < totalPages) { currentPage++; loadSessions(); }
+        });
+
+        loadSessions();
+    </script>
+</body>
+</html>

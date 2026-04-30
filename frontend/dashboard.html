@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ScrollBurn</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="persistent-header">
+        ⚡ This page: 0.07g CO₂ | 1 min TikTok: ~2.9g CO₂ → 41x more polluting
+    </header>
+
+    <nav>
+        <div class="logo"><a href="index.html">ScrollBurn</a></div>
+        <div>
+            <a href="sessions.html">Sessions</a>
+            <a href="challenges.html">Challenges</a>
+            <a href="#" id="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="flex justify-between items-center" style="margin-bottom: 20px;">
+            <h1 id="welcome-msg">Welcome</h1>
+            <a href="sessions.html"><button style="width: auto; margin-top: 0;">+ Log Session</button></a>
+        </div>
+
+        <div class="calculator-grid">
+            <div class="card" style="text-align: center;">
+                <h3>Total CO₂ (All Time)</h3>
+                <div style="font-size: 2rem; color: var(--warning-color); font-weight: bold;" id="stat-total-co2">0g</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <h3>Total CO₂ (This Week)</h3>
+                <div style="font-size: 2rem; color: var(--primary-color); font-weight: bold;" id="stat-weekly-co2">0g</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <h3>Top Polluting Platform</h3>
+                <div style="font-size: 1.5rem; font-weight: bold; margin-top: 10px;" id="stat-top-platform">-</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <h3>Equivalents</h3>
+                <div style="font-size: 1rem; margin-top: 10px;">
+                    🚗 <span id="stat-km">0</span> km by car<br>
+                    📧 <span id="stat-emails">0</span> emails
+                </div>
+            </div>
+        </div>
+
+        <section class="card">
+            <h2>Last 5 Sessions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Platform</th>
+                        <th>Minutes</th>
+                        <th>CO₂ (g)</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-sessions">
+                    <!-- Loaded via JS -->
+                </tbody>
+            </table>
+            <div style="text-align: right; margin-top: 10px;">
+                <a href="sessions.html">View All →</a>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Recent Challenges</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Platform</th>
+                        <th>Limit (min)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-challenges">
+                    <!-- Loaded via JS -->
+                </tbody>
+            </table>
+            <div style="text-align: right; margin-top: 10px;">
+                <a href="challenges.html">View All →</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Page Weight: ~15 KB</p>
+    </footer>
+
+    <script defer>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        });
+
+        async function loadDashboard() {
+            try {
+                // Get User Info
+                const meRes = await fetch('/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (meRes.ok) {
+                    const me = await meRes.json();
+                    document.getElementById('welcome-msg').innerText = `Welcome, ${me.username}`;
+                } else if (meRes.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                }
+
+                // Get Stats
+                const statsRes = await fetch('/sessions/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    document.getElementById('stat-total-co2').innerText = `${stats.total_co2}g`;
+                    document.getElementById('stat-weekly-co2').innerText = `${stats.weekly_co2}g`;
+                    document.getElementById('stat-top-platform').innerText = stats.top_platform;
+                    document.getElementById('stat-km').innerText = stats.equivalent_km_car;
+                    document.getElementById('stat-emails').innerText = stats.equivalent_emails;
+                }
+
+                // Get Recent Sessions
+                const sessRes = await fetch('/sessions?page=1&per_page=5', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (sessRes.ok) {
+                    const sessData = await sessRes.json();
+                    const tbody = document.getElementById('recent-sessions');
+                    tbody.innerHTML = '';
+                    sessData.sessions.forEach(s => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${s.session_date}</td>
+                                <td>${s.platform}</td>
+                                <td>${s.duration_minutes}</td>
+                                <td>${s.co2_grams}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // Get Recent Challenges
+                const challRes = await fetch('/challenges?page=1&per_page=3', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (challRes.ok) {
+                    const challData = await challRes.json();
+                    const tbody = document.getElementById('recent-challenges');
+                    tbody.innerHTML = '';
+                    challData.challenges.forEach(c => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${c.title}</td>
+                                <td>${c.platform}</td>
+                                <td>${c.daily_limit_minutes}</td>
+                                <td><span class="badge ${c.status}">${c.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (err) {
+                console.error("Dashboard error", err);
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

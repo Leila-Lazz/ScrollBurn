@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenges - ScrollBurn</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="persistent-header">
+        ⚡ This page: 0.07g CO₂ | 1 min TikTok: ~2.9g CO₂ → 41x more polluting
+    </header>
+
+    <nav>
+        <div class="logo"><a href="index.html">ScrollBurn</a></div>
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="sessions.html">Sessions</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="card">
+            <h2>Create GreenChallenge</h2>
+            <form id="add-challenge-form" class="calculator-grid">
+                <div>
+                    <label>Title</label>
+                    <input type="text" id="title" required placeholder="e.g. No TikTok this week">
+                </div>
+                <div>
+                    <label>Platform (Optional)</label>
+                    <select id="platform">
+                        <option value="All">All Platforms</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="YouTube">YouTube</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Daily Limit (minutes)</label>
+                    <input type="number" id="daily_limit" min="0" required>
+                </div>
+                <div>
+                    <label>Duration (days)</label>
+                    <input type="number" id="duration_days" min="1" required>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <button type="submit">Start Challenge</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Your Challenges</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Target</th>
+                        <th>Limit</th>
+                        <th>Days</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="challenges-list">
+                    <!-- Loaded via JS -->
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <button id="prev-btn" class="btn-secondary" style="width: auto;">← Prev</button>
+                <span id="page-info" style="align-self: center;">Page 1</span>
+                <button id="next-btn" class="btn-secondary" style="width: auto;">Next →</button>
+            </div>
+        </section>
+    </main>
+
+    <script defer>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        let currentPage = 1;
+        let totalPages = 1;
+
+        document.getElementById('add-challenge-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('title').value,
+                platform: document.getElementById('platform').value,
+                daily_limit_minutes: document.getElementById('daily_limit').value,
+                duration_days: document.getElementById('duration_days').value
+            };
+
+            try {
+                const res = await fetch('/challenges', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    document.getElementById('add-challenge-form').reset();
+                    loadChallenges();
+                } else {
+                    alert('Error creating challenge');
+                }
+            } catch (err) {
+                alert('Network error');
+            }
+        });
+
+        async function updateStatus(id, newStatus) {
+            const res = await fetch(`/challenges/${id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if(res.ok) loadChallenges();
+        }
+
+        async function deleteChallenge(id) {
+            if(!confirm("Delete this challenge?")) return;
+            const res = await fetch(`/challenges/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if(res.ok) loadChallenges();
+        }
+
+        async function loadChallenges() {
+            try {
+                const res = await fetch(`/challenges?page=${currentPage}&per_page=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    currentPage = data.current_page;
+                    totalPages = data.pages;
+                    
+                    const tbody = document.getElementById('challenges-list');
+                    tbody.innerHTML = '';
+                    data.challenges.forEach(c => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${c.title}</td>
+                                <td>${c.platform}</td>
+                                <td>${c.daily_limit_minutes}m</td>
+                                <td>${c.duration_days}</td>
+                                <td><span class="badge ${c.status}">${c.status}</span></td>
+                                <td>
+                                    <select onchange="updateStatus(${c.id}, this.value)" style="width:auto; padding:2px; margin-right:5px;">
+                                        <option value="active" ${c.status==='active'?'selected':''}>Active</option>
+                                        <option value="completed" ${c.status==='completed'?'selected':''}>Completed</option>
+                                        <option value="failed" ${c.status==='failed'?'selected':''}>Failed</option>
+                                    </select>
+                                    <button class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem; width: auto; margin:0;" onclick="deleteChallenge(${c.id})">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    document.getElementById('page-info').innerText = `Page ${currentPage} of ${totalPages || 1}`;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            if(currentPage > 1) { currentPage--; loadChallenges(); }
+        });
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if(currentPage < totalPages) { currentPage++; loadChallenges(); }
+        });
+
+        loadChallenges();
+    </script>
+</body>
+</html>

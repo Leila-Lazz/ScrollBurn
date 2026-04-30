@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ScrollBurn</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="persistent-header">
+        ⚡ This page: 0.07g CO₂ | 1 min TikTok: ~2.9g CO₂ → 41x more polluting
+    </header>
+
+    <nav>
+        <div class="logo"><a href="index.html">ScrollBurn</a></div>
+        <div>
+            <a href="register.html">Register</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="card" style="max-width: 400px; margin: 0 auto;">
+            <h2>Login</h2>
+            <div id="error-msg" class="error hidden"></div>
+            <form id="login-form">
+                <div style="margin-bottom: 15px;">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit">Sign In</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>Page Weight: ~15 KB</p>
+    </footer>
+
+    <script defer>
+        if (localStorage.getItem('token')) window.location.href = 'dashboard.html';
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', result.token);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    document.getElementById('error-msg').innerText = result.error;
+                    document.getElementById('error-msg').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('error-msg').innerText = 'Network error.';
+                document.getElementById('error-msg').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
