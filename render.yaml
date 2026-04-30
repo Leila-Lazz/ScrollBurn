@@ -2,6 +2,7 @@ services:
   - type: web
     name: scrollburn
     env: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: cd backend && gunicorn app:app
     envVars:
@@ -16,5 +17,6 @@ services:
 
 databases:
   - name: scrollburn-db
+    plan: free
     databaseName: scrollburn
     user: scrollburn
