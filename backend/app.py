@@ -96,5 +96,9 @@ if __name__ == '__main__':
     # Initialize DB (run init.sql logic if needed, but usually handled by SQLAlchemy or manual run)
     with app.app_context():
         db.create_all()
+<<<<<<< Updated upstream
     app.run(debug=True, port=5000)
 # Backend logic refinements
+=======
+    app.run(debug=True, port=5001)
+>>>>>>> Stashed changes
