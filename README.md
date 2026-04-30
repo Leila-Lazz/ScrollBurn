@@ -87,21 +87,19 @@ scrollburn/
 └── README.md            # Project documentation (You are here)
 ```
 
-## 🌱 Git Strategy & Commit Conventions
-We use the **Feature Branch Workflow**:
-- `main`: Production-ready code only.
-- `develop`: Integration branch for features.
-- `feature/frontend`: Specific UI changes.
-- `feature/backend`: Specific API changes.
+## 🌱 Git & Branching Strategy
+We adhere to a strict branching strategy to avoid working directly on `main` and to facilitate code reviews:
+- **`main`**: The stable, production-ready branch.
+- **`dev-front`**: Dedicated branch for user interface and frontend components.
+- **`dev-back`**: Dedicated branch for server logic, routing, and APIs.
+- **`database`**: Dedicated branch for data structure, schema updates, and access.
+- **`feature/*`**: Short-lived branches for specific tasks (e.g., `feature/auth`, `feature/homepage`).
 
-**Commit Convention:**
+**Commit Convention (Descriptive & Readable):**
 - `feat:` A new feature
 - `fix:` A bug fix
 - `docs:` Documentation only changes
-- `style:` Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
 - `refactor:` A code change that neither fixes a bug nor adds a feature
-- `test:` Adding missing tests or correcting existing tests
-- `chore:` Changes to the build process or auxiliary tools and libraries
 
 ## 🐞 Issue Tracking
 We utilize GitHub Issues organized by labels and milestones:
