@@ -4,7 +4,7 @@ ScrollBurn is an eco-designed awareness platform that allows young users to log 
 
 **Tagline:** *"You scroll. The planet burns. Let's see how much."*
 
-**Live Deployed URL:** [https://scrollburn.onrender.com](https://scrollburn.onrender.com) (Placeholder)
+**Live Deployed URL:**  
 
 ## 👥 Team Members
 - **Leila Lazzem** - Lead Developer (Full Stack & Green IT)
