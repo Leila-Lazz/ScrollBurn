@@ -7,9 +7,8 @@ ScrollBurn is an eco-designed awareness platform that allows young users to log 
 **Live Deployed URL:** [https://scrollburn.onrender.com](https://scrollburn.onrender.com) (Placeholder)
 
 ## 👥 Team Members
-- Othmane El Kadiri - Lead Developer (Full Stack & Green IT)
-- Leila Lazzem - UI/UX & Data Analysis
-- [Team Member 3] - Backend Security & QA
+- **Leila Lazzem** - Lead Developer (Full Stack & Green IT)
+- **Othmane El Kadiri** - Backend Security & Data Analysis
 
 ## 🛠️ Tech Stack & Green IT Justifications
 - **Frontend**: Vanilla HTML5, CSS3, JavaScript (0 framework overhead).
