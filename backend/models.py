@@ -43,3 +43,4 @@ class GreenChallenge(db.Model):
     co2_saved_grams = db.Column(db.Float, default=0.0)
     start_date = db.Column(db.Date, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+# Database schema optimizations
