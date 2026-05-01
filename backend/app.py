@@ -92,7 +92,12 @@ def serve_frontend(path):
         return send_from_directory(frontend_dir, path)
     return jsonify({"error": "Not found"}), 404
 
+# Initialize DB tables (runs once when app is loaded by Gunicorn or locally)
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
+<<<<<<< Updated upstream
     # Initialize DB (run init.sql logic if needed, but usually handled by SQLAlchemy or manual run)
     with app.app_context():
         db.create_all()
@@ -100,5 +105,7 @@ if __name__ == '__main__':
     app.run(debug=True, port=5000)
 # Backend logic refinements
 =======
+=======
+>>>>>>> Stashed changes
     app.run(debug=True, port=5001)
 >>>>>>> Stashed changes
