@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_login import login_required
+from flask_login import login_required, current_user
 from models import db, User
 
 users_bp = Blueprint('users', __name__)
@@ -8,7 +8,10 @@ users_bp = Blueprint('users', __name__)
 @users_bp.route('', methods=['GET'])
 @login_required
 def get_users():
-    # Admin only check could go here, for simplicity assuming auth is enough or add admin flag
+    # Simple Admin check: only the very first registered user (ID 1) is admin
+    if current_user.id != 1:
+        return jsonify({"error": "Forbidden. Admins only."}), 403
+        
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     
@@ -78,6 +81,9 @@ def update_user(id):
 @users_bp.route('/<int:id>', methods=['DELETE'])
 @login_required
 def delete_user(id):
+    if current_user.id != 1:
+        return jsonify({"error": "Forbidden. Admins only."}), 403
+        
     user = User.query.get_or_404(id)
     db.session.delete(user)
     db.session.commit()
