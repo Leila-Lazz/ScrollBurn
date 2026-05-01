@@ -111,6 +111,13 @@
                 if (meRes.ok) {
                     const me = await meRes.json();
                     document.getElementById('welcome-msg').innerText = `Welcome, ${me.username}`;
+                    if (me.id === 1) {
+                        const nav = document.querySelector('nav > div:last-child');
+                        const adminLink = document.createElement('a');
+                        adminLink.href = 'users.html';
+                        adminLink.innerText = 'Admin 🛡️';
+                        nav.insertBefore(adminLink, document.getElementById('logout-btn'));
+                    }
                 } else if (meRes.status === 401) {
                     localStorage.removeItem('token');
                     window.location.href = 'login.html';
