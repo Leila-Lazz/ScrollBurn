@@ -84,6 +84,9 @@ def delete_user(id):
     if current_user.id != 1:
         return jsonify({"error": "Forbidden. Admins only."}), 403
         
+    if id == 1:
+        return jsonify({"error": "Cannot delete the master admin account."}), 400
+        
     user = User.query.get_or_404(id)
     db.session.delete(user)
     db.session.commit()
