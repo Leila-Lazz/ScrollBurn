@@ -79,6 +79,12 @@
                     tbody.innerHTML = '';
                     data.users.forEach(u => {
                         const joined = u.created_at ? u.created_at.split('T')[0] : 'N/A';
+                        
+                        let actionHtml = `<button class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem; width: auto; margin:0;" onclick="deleteUser(${u.id})">Delete</button>`;
+                        if (u.id === 1) {
+                            actionHtml = `<span style="color:var(--primary-color); font-weight:bold;">Admin 🛡️</span>`;
+                        }
+
                         tbody.innerHTML += `
                             <tr>
                                 <td>${u.id}</td>
@@ -87,7 +93,7 @@
                                 <td>${u.device_type}</td>
                                 <td>${joined}</td>
                                 <td>
-                                    <button class="btn-danger" style="padding: 4px 8px; font-size: 0.8rem; width: auto; margin:0;" onclick="deleteUser(${u.id})">Delete</button>
+                                    ${actionHtml}
                                 </td>
                             </tr>
                         `;
